@@ -117,9 +117,9 @@ pub fn checker(
             echo "Ban user:"
               <> m.first_name
               <> m.last_name |> option.unwrap("")
-              <> "id:"
+              <> " id:"
               <> int.to_string(m.id)
-              <> "reason: fresh account"
+              <> " reason: fresh account"
 
             api.ban_chat_member(
               ctx.config.api_client,

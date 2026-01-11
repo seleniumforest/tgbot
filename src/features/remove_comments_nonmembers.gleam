@@ -70,7 +70,7 @@ pub fn checker(
                 types.ChatMemberLeftChatMember(_) -> {
                   echo "Delete message: "
                     <> message.text |> option.unwrap("")
-                    <> "reason: user not a chat member"
+                    <> " reason: user not a chat member"
 
                   let _ =
                     api.delete_message(

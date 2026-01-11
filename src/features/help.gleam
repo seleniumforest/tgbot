@@ -8,11 +8,12 @@ pub fn command(
   ctx: Context(BotSession, BotError),
   _cmd: Command,
 ) -> Result(Context(BotSession, BotError), BotError) {
-  let _ =
-    "Available commands: \n 
-    /kickNewAccounts [8000000000] - kick all users with telegram id over given. \n
-    /removeCommentsNonMembers - remove all comments from linked channel's posts if user is not a chat member \n
-    /help - show this message"
-    |> reply.with_text(ctx, _)
+  let msg =
+    "Available commands:\n"
+    <> "/kickNewAccounts [8000000000] - kick all users with telegram id over given.\n"
+    <> "/removeCommentsNonMembers - remove all comments from linked channel's posts if user is not a chat member\n"
+    <> "/help - show this message"
+
+  let _ = reply.with_text(ctx, msg)
   Ok(ctx)
 }
