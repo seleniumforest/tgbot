@@ -69,14 +69,6 @@ fn set_state(
       sqlight.int(new_state),
     )
 
-  let _ =
-    reply.with_text(
-      ctx,
-      "Success: users with telegram id over "
-        <> current_state |> int.to_string()
-        <> " will NOT be kicked anymore",
-    )
-
   case result {
     Error(_) -> {
       let _ = reply.with_text(ctx, "Error: could not set property")
