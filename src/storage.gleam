@@ -7,14 +7,11 @@ import models/chat_settings.{type ChatSettings} as ch
 import sqlight
 
 pub type StorageMessage {
-  GetChat(reply_with: Subject(Result(ChatSettings, StorageError)), id: String)
-  CreateChat(
-    reply_with: Subject(Result(ChatSettings, StorageError)),
-    id: String,
-  )
+  GetChat(reply_with: Subject(Result(ChatSettings, StorageError)), id: Int)
+  CreateChat(reply_with: Subject(Result(ChatSettings, StorageError)), id: Int)
   SetChatProperty(
     reply_with: Subject(Result(Bool, StorageError)),
-    id: String,
+    id: Int,
     prop: String,
     val: sqlight.Value,
   )
@@ -31,17 +28,17 @@ pub fn init() -> Subject(StorageMessage) {
   actor.data
 }
 
-pub fn create_chat(actor: Subject(StorageMessage), id: String) {
+pub fn create_chat(actor: Subject(StorageMessage), id: Int) {
   process.call_forever(actor, fn(a) { CreateChat(a, id) })
 }
 
-pub fn get_chat(actor: Subject(StorageMessage), id: String) {
+pub fn get_chat(actor: Subject(StorageMessage), id: Int) {
   process.call_forever(actor, fn(a) { GetChat(a, id) })
 }
 
 pub fn set_chat_property(
   actor: Subject(StorageMessage),
-  id: String,
+  id: Int,
   prop: String,
   val: sqlight.Value,
 ) {
@@ -68,9 +65,9 @@ fn handle_message(
     GetChat(id:, reply_with:) -> {
       let query =
         sqlight.query(
-          "SELECT data FROM users WHERE chat_id = ? LIMIT 1;",
+          "SELECT data FROM chats WHERE chat_id = ? LIMIT 1;",
           on: connection,
-          with: [sqlight.text(id)],
+          with: [sqlight.int(id)],
           expecting: string_decoder(),
         )
 
@@ -79,7 +76,7 @@ fn handle_message(
     }
 
     SetChatProperty(reply_with:, id:, prop:, val:) -> {
-      let sql = "UPDATE users 
+      let sql = "UPDATE chats 
       SET data = json_set(data, '$." <> prop <> "', ?) 
       WHERE chat_id = ?;"
 
@@ -87,7 +84,7 @@ fn handle_message(
         sqlight.query(
           sql,
           on: connection,
-          with: [val, sqlight.text(id)],
+          with: [val, sqlight.int(id)],
           expecting: decode.dynamic,
         )
 
@@ -106,11 +103,11 @@ fn handle_message(
         |> sqlight.text
 
       let query =
-        "INSERT INTO users (chat_id, data) values (?, ?) RETURNING data;"
+        "INSERT INTO chats (chat_id, data) values (?, ?) RETURNING data;"
         |> sqlight.query(
           on: connection,
           with: [
-            sqlight.text(id),
+            sqlight.int(id),
             default_chat,
           ],
           expecting: string_decoder(),
@@ -146,9 +143,8 @@ fn init_db() {
   let assert Ok(conn) = sqlight.open("db")
 
   let sql =
-    "CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    chat_id TEXT UNIQUE NOT NULL,
+    "CREATE TABLE IF NOT EXISTS chats (
+    chat_id INTEGER PRIMARY KEY,
     data JSON NULL);"
   let assert Ok(Nil) = sqlight.exec(sql, conn)
   conn

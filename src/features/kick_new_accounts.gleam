@@ -17,7 +17,6 @@ pub fn command(
   ctx: Context(BotSession, BotError),
   cmd: Command,
 ) -> Result(Context(BotSession, BotError), BotError) {
-  echo "current cmd " <> cmd.text |> string.inspect
   let cmd_args =
     cmd.text
     |> string.split(" ")
@@ -65,7 +64,7 @@ fn set_state(
   let result =
     storage.set_chat_property(
       ctx.session.db,
-      ctx.key,
+      ctx.update.chat_id,
       "kick_new_accounts",
       sqlight.int(new_state),
     )
@@ -111,10 +110,10 @@ pub fn checker(
   upd: Update,
   next: fn(Context(BotSession, BotError), Update) -> a,
 ) -> a {
-  case upd {
-    MessageUpdate(_from_id, _raw, chat_id:, message:) -> {
-      let ids_to_delete = ctx.session.chat_settings.kick_new_accounts
+  let ids_to_delete = ctx.session.chat_settings.kick_new_accounts
 
+  case upd, ids_to_delete {
+    MessageUpdate(_from_id, _raw, chat_id:, message:), itd if itd > 0 -> {
       case ids_to_delete {
         i if i <= 0 -> next(ctx, upd)
         _ -> {
@@ -145,6 +144,6 @@ pub fn checker(
         }
       }
     }
-    _ -> next(ctx, upd)
+    _, _ -> next(ctx, upd)
   }
 }
