@@ -105,7 +105,7 @@ pub fn checker(
   let ids_to_delete = ctx.session.chat_settings.kick_new_accounts
 
   case upd, ids_to_delete {
-    MessageUpdate(_from_id, _raw, chat_id:, message:), itd if itd > 0 -> {
+    MessageUpdate(chat_id:, message:, ..), itd if itd > 0 -> {
       case ids_to_delete {
         i if i <= 0 -> next(ctx, upd)
         _ -> {

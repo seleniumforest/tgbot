@@ -47,7 +47,7 @@ pub fn checker(
   next: fn(Context(BotSession, BotError), Update) -> a,
 ) -> a {
   case upd, ctx.session.chat_settings.remove_comments_nonmembers {
-    update.TextUpdate(_text, _raw, from_id:, chat_id:, message:), True -> {
+    update.TextUpdate(from_id:, chat_id:, message:, ..), True -> {
       let is_forward =
         message.reply_to_message
         |> option.map(fn(rtm) { rtm.is_automatic_forward })

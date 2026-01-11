@@ -29,8 +29,15 @@ pub fn main() {
 
   let router =
     router.new("default")
+    |> router.use_middleware(check_is_admin())
     |> router.use_middleware(inject_chat_settings(db))
     |> router.on_custom(fn(_) { True }, handle_update)
+    |> router.on_command("kickNewAccounts", kick_new_accounts.command)
+    |> router.on_commands(["help", "start"], help.command)
+    |> router.on_command(
+      "removeCommentsNonMembers",
+      remove_comments_nonmembers.command,
+    )
 
   let assert Ok(token) = env.get_string("BOT_TOKEN")
   let assert Ok(bot) =
@@ -55,43 +62,43 @@ fn handle_update(
   upd: Update,
 ) -> Result(Context(BotSession, BotError), BotError) {
   process.spawn_unlinked(fn() {
-    case upd {
-      update.CommandUpdate(from_id:, chat_id:, command:, ..) -> {
-        let _ =
-          api.get_chat_administrators(
-            ctx.config.api_client,
-            GetChatAdministratorsParameters(Int(chat_id)),
-          )
-          |> result.unwrap([])
-          |> list.find(fn(el) {
-            case el {
-              types.ChatMemberAdministratorChatMember(admin) ->
-                admin.user.id == from_id
-              types.ChatMemberOwnerChatMember(owner) -> owner.user.id == from_id
-              _ -> False
-            }
-          })
-          |> result.try(fn(_) {
-            case command.text {
-              "/kickNewAccounts" -> kick_new_accounts.command(ctx, command)
-              "/removeCommentsNonMembers" ->
-                remove_comments_nonmembers.command(ctx, command)
-              "/help" | "/start" -> help.command(ctx, command)
-              _ -> Ok(ctx)
-            }
-            |> result.replace_error(Nil)
-          })
-        Nil
-      }
-      _ -> {
-        use ctx, _upd <- kick_new_accounts.checker(ctx, upd)
-        use _ctx, _upd <- remove_comments_nonmembers.checker(ctx, upd)
-        Nil
+    use ctx, _upd <- kick_new_accounts.checker(ctx, upd)
+    use _ctx, _upd <- remove_comments_nonmembers.checker(ctx, upd)
+    Nil
+  })
+  Ok(ctx)
+}
+
+fn check_is_admin() {
+  fn(handler) {
+    fn(ctx: bot.Context(BotSession, BotError), upd: update.Update) {
+      case upd {
+        update.CommandUpdate(..) -> {
+          let is_admin =
+            api.get_chat_administrators(
+              ctx.config.api_client,
+              GetChatAdministratorsParameters(Int(upd.chat_id)),
+            )
+            |> result.unwrap([])
+            |> list.find(fn(el) {
+              case el {
+                types.ChatMemberAdministratorChatMember(admin) ->
+                  admin.user.id == upd.from_id
+                types.ChatMemberOwnerChatMember(owner) ->
+                  owner.user.id == upd.from_id
+                _ -> False
+              }
+            })
+
+          case is_admin |> result.is_ok {
+            False -> Ok(ctx)
+            True -> handler(ctx, upd)
+          }
+        }
+        _ -> handler(ctx, upd)
       }
     }
-  })
-
-  Ok(ctx)
+  }
 }
 
 fn inject_chat_settings(db) {
