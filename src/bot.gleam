@@ -52,7 +52,15 @@ pub fn main() {
     )
     |> telega.init_for_polling()
 
-  let assert Ok(poller) = polling.start_polling_default(bot)
+  let assert Ok(poller) =
+    polling.start_polling_with_offset(
+      bot,
+      -1,
+      timeout: 10,
+      limit: 100,
+      allowed_updates: [],
+      poll_interval: 2000,
+    )
 
   polling.wait_finish(poller)
 }
