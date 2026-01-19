@@ -6,6 +6,7 @@ import features/check_female_name
 import features/help
 import features/kick_new_accounts
 import features/remove_comments_nonmembers
+import gleam/bool
 import gleam/erlang/process
 import gleam/int
 import gleam/io
@@ -128,7 +129,12 @@ fn check_is_admin() {
   fn(handler) {
     fn(ctx: bot.Context(BotSession, BotError), upd: update.Update) {
       case upd {
-        update.CommandUpdate(..) -> {
+        update.CommandUpdate(message:, ..) -> {
+          use <- bool.guard(
+            message.chat.type_ |> option.unwrap("") == "private",
+            handler(ctx, upd),
+          )
+
           let is_admin =
             api.get_chat_administrators(
               ctx.config.api_client,
@@ -184,9 +190,9 @@ fn inject_chat_settings(db) {
           )
           handler(ctx, update)
         }
-        Ok(c) -> {
+        Ok(chat_settings) -> {
           let session =
-            bot_session.BotSession(c, db, option.None, Resources([]))
+            bot_session.BotSession(..ctx.session, chat_settings:, db:)
           let modified_ctx = bot.Context(..ctx, session:)
           handler(modified_ctx, update)
         }
