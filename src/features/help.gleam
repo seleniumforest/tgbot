@@ -11,7 +11,7 @@ pub fn command(
   let msg =
     "Available commands:\n"
     <> "/kickNewAccounts [8000000000] - kick all users with telegram id over given.\n"
-    <> "/removeCommentsNonMembers - remove all comments from linked channel's posts if user is not a chat member\n"
+    <> "/strictModeNonMembers - strict mode (no media, links, reactions) for forwarded messages from linked channel\n"
     <> "/checkChatClones - bot will try to find accounts whose name is similar to chat title\n"
     <> "/checkFemaleName - bot will kick joining accounts with ENG/RU female name\n"
     <> "/help - show this message"

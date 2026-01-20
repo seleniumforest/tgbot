@@ -5,7 +5,7 @@ import gleam/json
 pub type ChatSettings {
   ChatSettings(
     kick_new_accounts: Int,
-    remove_comments_nonmembers: Bool,
+    strict_mode_nonmembers: Bool,
     no_links: Bool,
     check_chat_clones: Bool,
     check_female_name: Bool,
@@ -16,7 +16,7 @@ pub fn default() {
   ChatSettings(
     kick_new_accounts: 0,
     no_links: False,
-    remove_comments_nonmembers: False,
+    strict_mode_nonmembers: False,
     check_chat_clones: False,
     check_female_name: False,
   )
@@ -26,8 +26,8 @@ pub fn chat_encoder(chat: ChatSettings) {
   json.object([
     #("kick_new_accounts", json.int(chat.kick_new_accounts)),
     #(
-      "remove_comments_nonmembers",
-      bool_as_int_encoder(chat.remove_comments_nonmembers),
+      "strict_mode_nonmembers",
+      bool_as_int_encoder(chat.strict_mode_nonmembers),
     ),
     #("check_chat_clones", bool_as_int_encoder(chat.check_chat_clones)),
     #("check_female_name", bool_as_int_encoder(chat.check_chat_clones)),
@@ -57,14 +57,13 @@ pub fn chat_decoder() {
     decode.int,
   )
 
-  //remove_comments_nonmembers
-  use remove_comments_nonmembers <- decode.optional_field(
-    "remove_comments_nonmembers",
+  //strict_mode_nonmembers
+  use strict_mode_nonmembers <- decode.optional_field(
+    "strict_mode_nonmembers",
     0,
     decode.int,
   )
-  let assert Ok(remove_comments_nonmembers) =
-    int_to_bool(remove_comments_nonmembers)
+  let assert Ok(strict_mode_nonmembers) = int_to_bool(strict_mode_nonmembers)
 
   //check_chat_clones
   use check_chat_clones <- decode.optional_field(
@@ -89,7 +88,7 @@ pub fn chat_decoder() {
   decode.success(ChatSettings(
     kick_new_accounts:,
     no_links:,
-    remove_comments_nonmembers:,
+    strict_mode_nonmembers:,
     check_chat_clones:,
     check_female_name:,
   ))

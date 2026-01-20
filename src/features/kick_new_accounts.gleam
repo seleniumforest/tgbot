@@ -1,10 +1,12 @@
 import error.{type BotError}
+import gleam/bool
 import gleam/int
 import gleam/list
 import gleam/option
 import gleam/result
 import gleam/string
-import helpers/reply.{reply}
+import helpers/log
+import helpers/reply.{reply, reply_format}
 import models/bot_session.{type BotSession}
 import sqlight
 import storage
@@ -22,6 +24,8 @@ pub fn command(
     |> string.split(" ")
     |> list.rest()
     |> result.unwrap([])
+    |> list.filter(fn(x) { x |> string.is_empty |> bool.negate })
+
   let args_count = cmd_args |> list.length
   let first_arg =
     cmd_args
@@ -77,18 +81,16 @@ fn set_state(
     Ok(_) -> {
       let _ = case new_state {
         ns if ns > 0 ->
-          reply(
+          reply_format(
             ctx,
-            "Success: users with telegram id over "
-              <> new_state |> int.to_string()
-              <> " will be kicked",
+            "Success: users with telegram id over {0} will be kicked",
+            [new_state |> int.to_string()],
           )
         _ ->
-          reply(
+          reply_format(
             ctx,
-            "Success: users with telegram id over "
-              <> current_state |> int.to_string()
-              <> " will NOT be kicked",
+            "Success: users with telegram id over {0} will NOT be kicked",
+            [current_state |> int.to_string()],
           )
       }
 
@@ -111,12 +113,11 @@ pub fn checker(
           case member.user.id > ids_to_delete && !member.user.is_bot {
             False -> next(ctx, upd)
             True -> {
-              echo "Ban user:"
-                <> member.user.first_name
-                <> member.user.last_name |> option.unwrap("")
-                <> " id:"
-                <> int.to_string(member.user.id)
-                <> " reason: fresh account"
+              log.print("Ban user: {0} {1} id: {2} reason: fresh account", [
+                member.user.first_name,
+                member.user.last_name |> option.unwrap(""),
+                int.to_string(member.user.id),
+              ])
 
               let _ =
                 api.ban_chat_member(

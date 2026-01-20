@@ -2,6 +2,7 @@ import features/check_chat_clones.{smart_compare}
 import gleam/list
 import gleeunit
 import gleeunit/should
+import helpers/log
 
 pub fn main() {
   gleeunit.main()
@@ -20,11 +21,10 @@ pub fn smart_compare_test() {
     case result {
       False -> should.be_false(result)
       True -> {
-        echo "FAIL: Strings `"
-          <> el.0
-          <> "` and `"
-          <> el.1
-          <> "` should be not equal"
+        log.print("FAIL: Strings `{0}` and `{1} should be not equal`", [
+          el.0,
+          el.1,
+        ])
         should.be_false(result)
       }
     }
@@ -45,11 +45,10 @@ pub fn smart_compare_test() {
     let result = smart_compare(el.0, el.1)
     case result {
       False -> {
-        echo "FAIL: Strings `"
-          <> el.0
-          <> "` and `"
-          <> el.1
-          <> "` should be equal"
+        log.print("FAIL: Strings `{0}` and `{1} should be equal`", [
+          el.0,
+          el.1,
+        ])
         should.be_true(result)
       }
       True -> {

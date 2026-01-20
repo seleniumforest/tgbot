@@ -1,5 +1,4 @@
 import error.{type BotError}
-import gleam/bool
 import gleam/list
 import gleam/option
 import gleam/string
@@ -57,7 +56,6 @@ pub fn checker(
           let is_female_name =
             ctx.session.resources.female_names
             |> list.contains(member.user.first_name |> string.lowercase())
-
           case is_female_name {
             False -> next(ctx, upd)
             True -> {

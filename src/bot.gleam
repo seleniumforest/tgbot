@@ -5,15 +5,15 @@ import features/check_chat_clones
 import features/check_female_name
 import features/help
 import features/kick_new_accounts
-import features/remove_comments_nonmembers
+import features/strict_mode_nonmembers
 import gleam/bool
 import gleam/erlang/process
 import gleam/int
-import gleam/io
 import gleam/list
 import gleam/option
 import gleam/result
 import gleam/string
+import helpers/log
 import models/bot_session.{type BotSession, Resources}
 import simplifile
 import storage
@@ -42,16 +42,17 @@ pub fn main() {
     |> router.on_command("kickNewAccounts", kick_new_accounts.command)
     |> router.on_command("checkChatClones", check_chat_clones.command)
     |> router.on_command("checkFemaleName", check_female_name.command)
+    |> router.on_command("strictModeNonMembers", strict_mode_nonmembers.command)
     |> router.on_commands(["help", "start"], help.command)
-    |> router.on_command(
-      "removeCommentsNonMembers",
-      remove_comments_nonmembers.command,
-    )
 
   let assert Ok(token) = env.get_string("BOT_TOKEN")
   let assert Ok(bot) =
     telega.new_for_polling(token:)
     |> telega.with_router(router)
+    |> telega.with_catch_handler(fn(_ctx, err) {
+      log.print_err(err |> string.inspect, [])
+      Ok(Nil)
+    })
     |> telega.with_session_settings(
       bot.SessionSettings(
         persist_session: fn(_key, session) { Ok(session) },
@@ -117,7 +118,7 @@ fn handle_update(
 ) -> Result(Context(BotSession, BotError), BotError) {
   process.spawn_unlinked(fn() {
     use ctx, upd <- kick_new_accounts.checker(ctx, upd)
-    use ctx, upd <- remove_comments_nonmembers.checker(ctx, upd)
+    use ctx, upd <- strict_mode_nonmembers.checker(ctx, upd)
     use ctx, upd <- check_chat_clones.checker(ctx, upd)
     use _ctx, _upd <- check_female_name.checker(ctx, upd)
     Nil
@@ -130,18 +131,15 @@ fn check_is_admin() {
     fn(ctx: bot.Context(BotSession, BotError), upd: update.Update) {
       case upd {
         update.CommandUpdate(message:, ..) -> {
-          use <- bool.guard(
-            message.chat.type_ |> option.unwrap("") == "private",
-            handler(ctx, upd),
-          )
-
-          let is_admin =
-            api.get_chat_administrators(
+          let is_private = message.chat.type_ |> option.unwrap("") == "private"
+          let continue_as_admin =
+            is_private
+            || api.get_chat_administrators(
               ctx.config.api_client,
               GetChatAdministratorsParameters(Int(upd.chat_id)),
             )
             |> result.unwrap([])
-            |> list.find(fn(el) {
+            |> list.filter(fn(el) {
               case el {
                 types.ChatMemberAdministratorChatMember(admin) ->
                   admin.user.id == upd.from_id
@@ -150,8 +148,10 @@ fn check_is_admin() {
                 _ -> False
               }
             })
+            |> list.is_empty
+            |> bool.negate
 
-          case is_admin |> result.is_ok {
+          case continue_as_admin {
             False -> Ok(ctx)
             True -> handler(ctx, upd)
           }
@@ -169,10 +169,10 @@ fn inject_chat_settings(db) {
         result.try_recover(storage.get_chat(db, ctx.update.chat_id), fn(err) {
           case err {
             storage.EmptyDataError -> {
-              io.println(
-                "Creating chat settings for new key "
-                <> ctx.update.chat_id |> int.to_string,
-              )
+              log.print("Creating chat settings for new key {0}", [
+                ctx.update.chat_id |> int.to_string,
+              ])
+
               storage.create_chat(db, ctx.update.chat_id)
             }
             _ -> Error(err)
@@ -181,13 +181,11 @@ fn inject_chat_settings(db) {
 
       case chat {
         Error(e) -> {
-          io.println_error(
-            "ERROR: Could not get chat settings for chat "
-            <> ctx.key
-            <> " error: "
-            <> e |> string.inspect
-            <> " Processing with default handler. This is NOT normal behaviour",
+          log.print_err(
+            "ERROR: Could not get chat settings for chat {0} err: {1} Processing with default handler. This is NOT normal behaviour",
+            [ctx.key, e |> string.inspect],
           )
+
           handler(ctx, update)
         }
         Ok(chat_settings) -> {

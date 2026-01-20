@@ -1,10 +1,19 @@
 import error.{type BotError}
 import gleam/option.{None, Some}
 import gleam/result
+import helpers/log
 import models/bot_session.{type BotSession}
 import telega/api
 import telega/bot
 import telega/model/types.{ReplyParameters, SendMessageParameters, Str}
+
+pub fn reply_format(
+  ctx: bot.Context(BotSession, BotError),
+  format: String,
+  data: List(String),
+) -> Result(types.Message, error.BotError) {
+  log.format(format, data) |> reply(ctx, _)
+}
 
 pub fn reply(
   ctx: bot.Context(BotSession, BotError),

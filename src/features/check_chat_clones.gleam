@@ -75,15 +75,6 @@ pub fn checker(
           let cmp1 = smart_compare(last_first, chat_title)
           let cmp2 = smart_compare(first_last, chat_title)
 
-          // echo "comparing "
-          //   <> last_first
-          //   <> " with "
-          //   <> chat_title
-          //   <> " "
-          //   <> cmp1 |> string.inspect
-          //   <> " "
-          //   <> cmp2 |> string.inspect
-
           case cmp1, cmp2 {
             False, False -> next(ctx, upd)
             _, _ -> {
