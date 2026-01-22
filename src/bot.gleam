@@ -50,7 +50,7 @@ pub fn main() {
     telega.new_for_polling(token:)
     |> telega.with_router(router)
     |> telega.with_catch_handler(fn(_ctx, err) {
-      log.print_err(err |> string.inspect, [])
+      log.print_err(err |> string.inspect)
       Ok(Nil)
     })
     |> telega.with_session_settings(
@@ -168,8 +168,8 @@ fn inject_chat_settings(db) {
       let chat =
         result.try_recover(storage.get_chat(db, ctx.update.chat_id), fn(err) {
           case err {
-            storage.EmptyDataError -> {
-              log.print("Creating chat settings for new key {0}", [
+            error.EmptyDataError -> {
+              log.printf("Creating chat settings for new key {0}", [
                 ctx.update.chat_id |> int.to_string,
               ])
 
@@ -181,7 +181,7 @@ fn inject_chat_settings(db) {
 
       case chat {
         Error(e) -> {
-          log.print_err(
+          log.printf_err(
             "ERROR: Could not get chat settings for chat {0} err: {1} Processing with default handler. This is NOT normal behaviour",
             [ctx.key, e |> string.inspect],
           )

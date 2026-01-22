@@ -1,3 +1,6 @@
+import error.{
+  type BotError, DbConnectionError, EmptyDataError, InvalidValueError,
+}
 import gleam/dynamic/decode
 import gleam/erlang/process.{type Subject}
 import gleam/json
@@ -7,10 +10,10 @@ import models/chat_settings.{type ChatSettings} as ch
 import sqlight
 
 pub type StorageMessage {
-  GetChat(reply_with: Subject(Result(ChatSettings, StorageError)), id: Int)
-  CreateChat(reply_with: Subject(Result(ChatSettings, StorageError)), id: Int)
+  GetChat(reply_with: Subject(Result(ChatSettings, BotError)), id: Int)
+  CreateChat(reply_with: Subject(Result(ChatSettings, BotError)), id: Int)
   SetChatProperty(
-    reply_with: Subject(Result(Bool, StorageError)),
+    reply_with: Subject(Result(Bool, BotError)),
     id: Int,
     prop: String,
     val: sqlight.Value,
@@ -48,13 +51,6 @@ pub fn set_chat_property(
 fn string_decoder() {
   use id <- decode.field(0, decode.string)
   decode.success(id)
-}
-
-pub type StorageError {
-  StorageError(msg: String)
-  InvalidValueError(json.DecodeError)
-  DbConnectionError(sqlight.Error)
-  EmptyDataError
 }
 
 fn handle_message(
@@ -121,7 +117,7 @@ fn handle_message(
 
 fn unwrap_query_to_settings(
   query: Result(List(String), sqlight.Error),
-  reply_with: Subject(Result(ChatSettings, StorageError)),
+  reply_with: Subject(Result(ChatSettings, BotError)),
 ) {
   case query {
     Error(e) -> process.send(reply_with, Error(DbConnectionError(e)))

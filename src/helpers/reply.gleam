@@ -7,7 +7,7 @@ import telega/api
 import telega/bot
 import telega/model/types.{ReplyParameters, SendMessageParameters, Str}
 
-pub fn reply_format(
+pub fn replyf(
   ctx: bot.Context(BotSession, BotError),
   format: String,
   data: List(String),
@@ -21,7 +21,7 @@ pub fn reply(
 ) -> Result(types.Message, error.BotError) {
   case ctx.session.message_id {
     None -> {
-      Error(error.BotError("Trying to reply for update without message ID."))
+      Error(error.GenericError("Trying to reply for update without message ID."))
     }
     Some(message_id) -> {
       api.send_message(
@@ -51,7 +51,7 @@ pub fn reply(
           reply_markup: None,
         ),
       )
-      |> result.map_error(fn(err) { error.TelegaError(err) })
+      |> result.map_error(fn(err) { error.TelegaLibError(err) })
     }
   }
 }

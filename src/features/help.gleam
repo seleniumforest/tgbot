@@ -1,4 +1,5 @@
 import error.{type BotError}
+import gleam/result
 import helpers/reply.{reply}
 import models/bot_session.{type BotSession}
 import telega/bot.{type Context}
@@ -16,6 +17,5 @@ pub fn command(
     <> "/checkFemaleName - bot will kick joining accounts with ENG/RU female name\n"
     <> "/help - show this message"
 
-  let _ = reply(ctx, msg)
-  Ok(ctx)
+  reply(ctx, msg) |> result.try(fn(_) { Ok(ctx) })
 }

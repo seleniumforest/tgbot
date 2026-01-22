@@ -21,7 +21,7 @@ pub fn smart_compare_test() {
     case result {
       False -> should.be_false(result)
       True -> {
-        log.print("FAIL: Strings `{0}` and `{1} should be not equal`", [
+        log.printf("FAIL: Strings `{0}` and `{1} should be not equal`", [
           el.0,
           el.1,
         ])
@@ -45,7 +45,7 @@ pub fn smart_compare_test() {
     let result = smart_compare(el.0, el.1)
     case result {
       False -> {
-        log.print("FAIL: Strings `{0}` and `{1} should be equal`", [
+        log.printf("FAIL: Strings `{0}` and `{1} should be equal`", [
           el.0,
           el.1,
         ])

@@ -3,6 +3,8 @@ import gleam/bool
 import gleam/list
 import gleam/option
 import gleam/regexp
+import gleam/result
+import gleam/string
 import helpers/log
 import helpers/reply.{reply}
 import models/bot_session.{type BotSession}
@@ -19,37 +21,28 @@ pub fn command(
 ) -> Result(Context(BotSession, BotError), BotError) {
   let current_state = ctx.session.chat_settings.strict_mode_nonmembers
   let new_state = !current_state
-  let result =
-    storage.set_chat_property(
-      ctx.session.db,
-      ctx.update.chat_id,
-      "strict_mode_nonmembers",
-      sqlight.bool(new_state),
-    )
 
-  case result {
-    Error(_) -> {
-      let _ = reply(ctx, "Error: could not set property")
-      Error(error.BotError("Error: could not set property"))
-    }
-    Ok(_) -> {
-      let msg = case new_state {
-        False -> "Success: strict mode for non-members disabled"
-        True ->
-          "Success: strict mode (no media, links, reactions) for non-members enabled"
-      }
-      let _ = reply(ctx, msg)
-
-      Ok(ctx)
-    }
-  }
+  storage.set_chat_property(
+    ctx.session.db,
+    ctx.update.chat_id,
+    "strict_mode_nonmembers",
+    sqlight.bool(new_state),
+  )
+  |> result.try(fn(_) {
+    reply(ctx, case new_state {
+      False -> "Success: strict mode for non-members disabled"
+      True ->
+        "Success: strict mode (no media, links, reactions, female name) for non-members enabled"
+    })
+  })
+  |> result.try(fn(_) { Ok(ctx) })
 }
 
 pub fn checker(
   ctx: Context(BotSession, BotError),
   upd: Update,
-  next: fn(Context(BotSession, BotError), Update) -> a,
-) -> a {
+  next: fn(Context(BotSession, BotError), Update) -> Nil,
+) -> Nil {
   use <- bool.lazy_guard(
     !ctx.session.chat_settings.strict_mode_nonmembers,
     fn() { next(ctx, upd) },
@@ -71,39 +64,42 @@ pub fn checker(
 
       use <- bool.lazy_guard(!is_forward, fn() { next(ctx, upd) })
 
-      let chat_member =
-        api.get_chat_member(
-          ctx.config.api_client,
-          GetChatMemberParameters(chat_id: Int(chat_id), user_id: from_id),
-        )
-      case chat_member {
-        Error(_) -> next(ctx, upd)
-        Ok(mem) -> {
-          case mem {
-            types.ChatMemberLeftChatMember(_) -> {
-              use <- bool.lazy_guard(!has_some_shit(message), fn() {
-                next(ctx, upd)
-              })
+      api.get_chat_member(
+        ctx.config.api_client,
+        GetChatMemberParameters(chat_id: Int(chat_id), user_id: from_id),
+      )
+      |> result.try(fn(mem) {
+        case mem {
+          types.ChatMemberLeftChatMember(member) -> {
+            use <- bool.lazy_guard(
+              member.user.is_premium |> option.unwrap(False),
+              fn() { Ok(next(ctx, upd)) },
+            )
 
-              log.print("Delete message {0} reason: strict mode", [
-                message.text |> option.unwrap(""),
-              ])
+            let is_female_name =
+              ctx.session.resources.female_names
+              |> list.contains(member.user.first_name |> string.lowercase())
 
-              let _ =
-                api.delete_message(
-                  ctx.config.api_client,
-                  types.DeleteMessageParameters(
-                    chat_id: Int(chat_id),
-                    message_id: message.message_id,
-                  ),
-                )
-              next(ctx, upd)
-            }
-            _ -> next(ctx, upd)
+            let needs_delete = is_female_name || has_some_shit(message)
+            use <- bool.lazy_guard(!needs_delete, fn() { Ok(next(ctx, upd)) })
+
+            api.delete_message(
+              ctx.config.api_client,
+              types.DeleteMessageParameters(
+                chat_id: Int(chat_id),
+                message_id: message.message_id,
+              ),
+            )
+            |> result.map(fn(_) { Nil })
           }
+          _ -> Ok(next(ctx, upd))
         }
-      }
-      next(ctx, upd)
+      })
+      |> result.map_error(fn(err) {
+        log.print_err(err |> string.inspect)
+        err
+      })
+      |> result.lazy_unwrap(fn() { next(ctx, upd) })
     }
     _ -> next(ctx, upd)
   }

@@ -46,7 +46,7 @@ fn int_to_bool(int: Int) {
   case int {
     0 -> Ok(False)
     1 -> Ok(True)
-    _ -> Error(error.BotError("Cannot decode int as bool"))
+    _ -> Error(error.GenericError("Cannot decode int as bool"))
   }
 }
 

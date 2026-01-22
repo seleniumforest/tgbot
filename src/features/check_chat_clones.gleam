@@ -1,7 +1,8 @@
 import error.{type BotError}
+import gleam/bool
 import gleam/dict.{type Dict}
 import gleam/list
-import gleam/option
+import gleam/option.{Some}
 import gleam/result
 import gleam/string
 import helpers/reply.{reply}
@@ -19,81 +20,73 @@ pub fn command(
 ) -> Result(Context(BotSession, BotError), BotError) {
   let current_state = ctx.session.chat_settings.check_chat_clones
   let new_state = !current_state
-  let result =
-    storage.set_chat_property(
-      ctx.session.db,
-      ctx.update.chat_id,
-      "check_chat_clones",
-      sqlight.bool(new_state),
-    )
 
-  case result {
-    Error(_) -> {
-      let _ = reply(ctx, "Error: could not set property")
-      Error(error.BotError("Error: could not set property"))
-    }
-    Ok(_) -> {
-      let msg = case new_state {
-        False ->
-          "Success: bot will NOT try to find accounts whose name is similar to chat title"
-        True ->
-          "Success: bot will try to find accounts whose name is similar to chat title"
-      }
-      let _ = reply(ctx, msg)
-
-      Ok(ctx)
-    }
-  }
+  storage.set_chat_property(
+    ctx.session.db,
+    ctx.update.chat_id,
+    "check_chat_clones",
+    sqlight.bool(new_state),
+  )
+  |> result.try(fn(_) {
+    reply(ctx, case new_state {
+      False ->
+        "Success: bot will NOT try to find accounts whose name is similar to chat title"
+      True ->
+        "Success: bot will try to find accounts whose name is similar to chat title"
+    })
+  })
+  |> result.try(fn(_) { Ok(ctx) })
 }
 
 pub fn checker(
   ctx: Context(BotSession, BotError),
   upd: Update,
-  next: fn(Context(BotSession, BotError), Update) -> a,
-) -> a {
-  case upd, ctx.session.chat_settings.check_chat_clones {
-    update.AudioUpdate(message:, ..), True
-    | update.BusinessMessageUpdate(message:, ..), True
-    | update.CommandUpdate(message:, ..), True
-    | update.EditedBusinessMessageUpdate(message:, ..), True
-    | update.EditedMessageUpdate(message:, ..), True
-    | update.MessageUpdate(message:, ..), True
-    | update.PhotoUpdate(message:, ..), True
-    | update.TextUpdate(message:, ..), True
-    | update.VideoUpdate(message:, ..), True
-    | update.VoiceUpdate(message:, ..), True
-    -> {
-      case message.from {
-        option.None -> next(ctx, upd)
-        option.Some(from) -> {
-          let last_first =
-            from.last_name |> option.unwrap("") <> " " <> from.first_name
-          let first_last =
-            from.first_name <> " " <> from.last_name |> option.unwrap("")
+  next: fn(Context(BotSession, BotError), Update) -> Nil,
+) -> Nil {
+  use <- bool.lazy_guard(!ctx.session.chat_settings.check_chat_clones, fn() {
+    next(ctx, upd)
+  })
 
-          let chat_title = message.chat.title |> option.unwrap("")
-          let cmp1 = smart_compare(last_first, chat_title)
-          let cmp2 = smart_compare(first_last, chat_title)
+  case upd {
+    update.AudioUpdate(message:, ..)
+    | update.BusinessMessageUpdate(message:, ..)
+    | update.CommandUpdate(message:, ..)
+    | update.EditedBusinessMessageUpdate(message:, ..)
+    | update.EditedMessageUpdate(message:, ..)
+    | update.MessageUpdate(message:, ..)
+    | update.PhotoUpdate(message:, ..)
+    | update.TextUpdate(message:, ..)
+    | update.VideoUpdate(message:, ..)
+    | update.VoiceUpdate(message:, ..) -> {
+      message.from
+      |> option.then(fn(from) {
+        let last_first =
+          from.last_name |> option.unwrap("") <> " " <> from.first_name
+        let first_last =
+          from.first_name <> " " <> from.last_name |> option.unwrap("")
 
-          case cmp1, cmp2 {
-            False, False -> next(ctx, upd)
-            _, _ -> {
-              let _ =
-                api.delete_message(
-                  ctx.config.api_client,
-                  types.DeleteMessageParameters(
-                    chat_id: Int(message.chat.id),
-                    message_id: message.message_id,
-                  ),
-                )
-              next(ctx, upd)
-            }
+        let chat_title = message.chat.title |> option.unwrap("")
+        let cmp1 = smart_compare(last_first, chat_title)
+        let cmp2 = smart_compare(first_last, chat_title)
+
+        case cmp1, cmp2 {
+          False, False -> Some(next(ctx, upd))
+          _, _ -> {
+            api.delete_message(
+              ctx.config.api_client,
+              types.DeleteMessageParameters(
+                chat_id: Int(message.chat.id),
+                message_id: message.message_id,
+              ),
+            )
+            |> result.try(fn(_) { Ok(Some(Nil)) })
+            |> result.lazy_unwrap(fn() { Some(next(ctx, upd)) })
           }
         }
-      }
-      next(ctx, upd)
+      })
+      |> option.lazy_unwrap(fn() { next(ctx, upd) })
     }
-    _, _ -> next(ctx, upd)
+    _ -> next(ctx, upd)
   }
 }
 
