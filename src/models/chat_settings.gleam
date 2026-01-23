@@ -9,6 +9,8 @@ pub type ChatSettings {
     no_links: Bool,
     check_chat_clones: Bool,
     check_female_name: Bool,
+    check_banned_words: Bool,
+    banned_words: List(String),
   )
 }
 
@@ -19,6 +21,8 @@ pub fn default() {
     strict_mode_nonmembers: False,
     check_chat_clones: False,
     check_female_name: False,
+    check_banned_words: False,
+    banned_words: [],
   )
 }
 
@@ -32,6 +36,8 @@ pub fn chat_encoder(chat: ChatSettings) {
     #("check_chat_clones", bool_as_int_encoder(chat.check_chat_clones)),
     #("check_female_name", bool_as_int_encoder(chat.check_chat_clones)),
     #("no_links", bool_as_int_encoder(chat.no_links)),
+    #("check_banned_words", bool_as_int_encoder(chat.check_banned_words)),
+    #("banned_words", json.array(chat.banned_words, json.string)),
   ])
 }
 
@@ -85,11 +91,28 @@ pub fn chat_decoder() {
   use no_links <- decode.optional_field("no_links", 0, decode.int)
   let assert Ok(no_links) = int_to_bool(no_links)
 
+  //check_banned_words
+  use check_banned_words <- decode.optional_field(
+    "check_banned_words",
+    0,
+    decode.int,
+  )
+  let assert Ok(check_banned_words) = int_to_bool(check_banned_words)
+
+  //banned_words
+  use banned_words <- decode.optional_field(
+    "banned_words",
+    [],
+    decode.list(decode.string),
+  )
+
   decode.success(ChatSettings(
     kick_new_accounts:,
     no_links:,
     strict_mode_nonmembers:,
     check_chat_clones:,
     check_female_name:,
+    check_banned_words:,
+    banned_words:,
   ))
 }

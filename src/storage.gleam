@@ -18,6 +18,11 @@ pub type StorageMessage {
     prop: String,
     val: sqlight.Value,
   )
+  SetChatData(
+    reply_with: Subject(Result(Bool, BotError)),
+    id: Int,
+    data: sqlight.Value,
+  )
 }
 
 pub fn init() -> Subject(StorageMessage) {
@@ -46,6 +51,14 @@ pub fn set_chat_property(
   val: sqlight.Value,
 ) {
   process.call_forever(actor, fn(a) { SetChatProperty(a, id, prop, val) })
+}
+
+pub fn set_chat_data(
+  actor: Subject(StorageMessage),
+  id: Int,
+  data: sqlight.Value,
+) {
+  process.call_forever(actor, fn(a) { SetChatData(a, id, data) })
 }
 
 fn string_decoder() {
@@ -110,6 +123,23 @@ fn handle_message(
         )
 
       unwrap_query_to_settings(query, reply_with)
+      actor.continue(connection)
+    }
+
+    SetChatData(reply_with:, id:, data:) -> {
+      let query =
+        sqlight.query(
+          "UPDATE chats SET data = ? WHERE chat_id = ?;",
+          on: connection,
+          with: [data, sqlight.int(id)],
+          expecting: decode.dynamic,
+        )
+
+      case query {
+        Error(e) -> process.send(reply_with, Error(DbConnectionError(e)))
+        Ok(_) -> process.send(reply_with, Ok(True))
+      }
+
       actor.continue(connection)
     }
   }

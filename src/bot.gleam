@@ -1,6 +1,7 @@
 import dot_env as dot
 import dot_env/env
 import error.{type BotError}
+import features/banned_words
 import features/check_chat_clones
 import features/check_female_name
 import features/help
@@ -43,6 +44,10 @@ pub fn main() {
     |> router.on_command("checkChatClones", check_chat_clones.command)
     |> router.on_command("checkFemaleName", check_female_name.command)
     |> router.on_command("strictModeNonMembers", strict_mode_nonmembers.command)
+    |> router.on_command("checkBannedWords", banned_words.command)
+    |> router.on_command("addBanWord", banned_words.add_word_command)
+    |> router.on_command("removeBanWord", banned_words.remove_word_command)
+    |> router.on_command("listBanWords", banned_words.list_words_command)
     |> router.on_commands(["help", "start"], help.command)
 
   let assert Ok(token) = env.get_string("BOT_TOKEN")
@@ -130,6 +135,7 @@ fn handle_update(
     use ctx, upd <- strict_mode_nonmembers.checker(ctx, upd)
     use ctx, upd <- check_chat_clones.checker(ctx, upd)
     use _ctx, _upd <- check_female_name.checker(ctx, upd)
+    use _ctx, _upd <- banned_words.checker(ctx, upd)
     Nil
   })
   Ok(ctx)
