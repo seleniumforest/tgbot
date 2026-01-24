@@ -17,6 +17,7 @@ pub type StorageMessage {
     id: Int,
     prop: String,
     val: sqlight.Value,
+    as_list: Bool,
   )
 }
 
@@ -45,7 +46,16 @@ pub fn set_chat_property(
   prop: String,
   val: sqlight.Value,
 ) {
-  process.call_forever(actor, fn(a) { SetChatProperty(a, id, prop, val) })
+  process.call_forever(actor, fn(a) { SetChatProperty(a, id, prop, val, False) })
+}
+
+pub fn set_chat_property_list(
+  actor: Subject(StorageMessage),
+  id: Int,
+  prop: String,
+  val: sqlight.Value,
+) {
+  process.call_forever(actor, fn(a) { SetChatProperty(a, id, prop, val, True) })
 }
 
 fn string_decoder() {
@@ -71,10 +81,15 @@ fn handle_message(
       actor.continue(connection)
     }
 
-    SetChatProperty(reply_with:, id:, prop:, val:) -> {
-      let sql = "UPDATE chats 
-      SET data = json_set(data, '$." <> prop <> "', ?) 
-      WHERE chat_id = ?;"
+    SetChatProperty(reply_with:, id:, prop:, val:, as_list:) -> {
+      let sql = case as_list {
+        True -> "UPDATE chats 
+            SET data = json_set(data, '$." <> prop <> "', json(?)) 
+            WHERE chat_id = ?;"
+        False -> "UPDATE chats 
+            SET data = json_set(data, '$." <> prop <> "', ?) 
+            WHERE chat_id = ?;"
+      }
 
       let query =
         sqlight.query(

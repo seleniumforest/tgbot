@@ -15,6 +15,12 @@ pub fn command(
     <> "/strictModeNonMembers - strict mode (no media, links, reactions) for forwarded messages from linked channel\n"
     <> "/checkChatClones - bot will try to find accounts/channels whose name is similar to chat title\n"
     <> "/checkFemaleName - bot will kick joining accounts with ENG/RU female name\n"
+    <> "\n"
+    <> "/checkBannedWords - toggle ban for messages with banned words\n"
+    <> "/addBanWord <word> - add word to ban list\n"
+    <> "/removeBanWord <word> - remove word from ban list\n"
+    <> "\n"
+    <> "/listSettings - show all settings\n"
     <> "/help - show this message"
 
   reply(ctx, msg) |> result.try(fn(_) { Ok(ctx) })
