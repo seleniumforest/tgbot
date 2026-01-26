@@ -1431,9 +1431,6 @@ Ebba
 Ebonee
 Ebony
 Eda
-Eddi
-Eddie
-Eddy
 Ede
 Edee
 Edeline
@@ -1785,7 +1782,6 @@ Francisca
 Franciska
 Francoise
 Francyne
-Frank
 Franky
 Franni
 Frannie
@@ -1793,9 +1789,6 @@ Franny
 Frayda
 Fred
 Freda
-Freddi
-Freddie
-Freddy
 Fredelia
 Frederica
 Fredericka
@@ -1981,14 +1974,12 @@ Guendolen
 Guenevere
 Guenna
 Guglielma
-Gui
 Guillema
 Guillemette
 Guinevere
 Guinna
 Gunilla
 Gunvor
-Gus
 Gusella
 Gussi
 Gussie
@@ -2374,7 +2365,6 @@ Jillian
 Jillie
 Jilly
 Jinny
-Jo
 Jo Ann
 Jo-Ann
 Jo-Anne
@@ -2419,7 +2409,6 @@ Johannah
 Johnette
 Johnna
 Joice
-Jojo
 Jolee
 Joleen
 Jolene
@@ -2457,7 +2446,6 @@ Joslyn
 Josselyn
 Josy
 Jourdan
-Joy
 Joyce
 Joycelin
 Joye
@@ -2584,7 +2572,6 @@ Kassi
 Kassia
 Kassie
 Kaster
-Kat
 Kata
 Katalin
 Kate
@@ -2677,7 +2664,6 @@ Kettie
 Ketty
 Kevina
 Kevyn
-Ki
 Kia
 Kiah
 Kial
@@ -2724,8 +2710,6 @@ Klarika
 Klarrisa
 Konstance
 Konstanze
-Koo
-Kora
 Koral
 Koralle
 Kordula
@@ -2769,7 +2753,6 @@ Kylynn
 Kym
 Kynthia
 Kyrstin
-La
 Lacee
 Lacey
 Lacie
@@ -2905,7 +2888,6 @@ Liana
 Liane
 Lianna
 Lianne
-Lib
 Libbey
 Libbi
 Libbie
@@ -2913,7 +2895,6 @@ Libby
 Licha
 Lida
 Lidia
-Lil
 Lila
 Lilah
 Lilas
@@ -2929,7 +2910,6 @@ Lillis
 Lilllie
 Lilly
 Lily
-Lin
 Lina
 Lind
 Linda
@@ -3061,14 +3041,12 @@ Luise
 Lula
 Lulita
 Lulu
-Luna
 Lura
 Lurette
 Lurleen
 Lurlene
 Lurline
 Lusa
-Lust
 Lyda
 Lydia
 Lydie
@@ -3097,7 +3075,6 @@ Lynnette
 Lynsey
 Lysandra
 Lyssa
-Mab
 Mabel
 Mabelle
 Mable
@@ -3123,9 +3100,7 @@ Madlin
 Madona
 Madonna
 Mady
-Mae
 Maegan
-Mag
 Magda
 Magdaia
 Magdalen
@@ -3368,7 +3343,6 @@ Meghann
 Mehetabel
 Mei
 Meira
-Mel
 Mela
 Melamie
 Melania
@@ -3525,7 +3499,6 @@ Monah
 Monica
 Monika
 Monique
-Mora
 Moreen
 Morena
 Morgana
@@ -3840,7 +3813,6 @@ Perri
 Perrine
 Perry
 Persis
-Pet
 Peta
 Petra
 Petrina
@@ -3854,7 +3826,6 @@ Phaidra
 Phebe
 Phedra
 Phelia
-Phil
 Philipa
 Philippa
 Philippe
@@ -3907,7 +3878,6 @@ Rachel
 Rachele
 Rachelle
 Rae
-Raf
 Rafa
 Rafaela
 Rafaelia
@@ -3956,7 +3926,6 @@ Rebecka
 Rebeka
 Rebekah
 Rebekkah
-Ree
 Reeba
 Reena
 Reeta
@@ -3984,7 +3953,6 @@ Rennie
 Reta
 Retha
 Revkah
-Rey
 Reyna
 Rhea
 Rheba
@@ -4006,9 +3974,6 @@ Rica
 Ricca
 Rici
 Ricki
-Rickie
-Ricky
-Riki
 Rikki
 Rina
 Risa
@@ -4065,7 +4030,6 @@ Rora
 Rori
 Rorie
 Rory
-Ros
 Rosa
 Rosabel
 Rosabella
@@ -4282,7 +4246,6 @@ Shela
 Shelagh
 Shelba
 Shelbi
-Shelby
 Shelia
 Shell
 Shelley
@@ -4319,7 +4282,6 @@ Shoshanna
 Shoshie
 Siana
 Sianna
-Sib
 Sibbie
 Sibby
 Sibeal
@@ -4438,12 +4400,9 @@ Suzi
 Suzie
 Suzy
 Suzzy
-Sybil
 Sybila
 Sybilla
 Sybille
-Sybyl
-Sydel
 Sydelle
 Sydney
 Sylvia
@@ -4494,7 +4453,6 @@ Tatiania
 Tatum
 Tawsha
 Teane
-Ted
 Tedda
 Teddi
 Teddie
@@ -4514,12 +4472,10 @@ Teressa
 Teri
 Teriann
 Terina
-Terra
 Terri
 Terri-Jo
 Terrianne
 Terrie
-Terry
 Terrye
 Tersina
 Teryl
@@ -4569,7 +4525,6 @@ Tildie
 Tildy
 Tillie
 Tilly
-Tim
 Timi
 Timmi
 Timmie
@@ -4704,7 +4659,6 @@ Veronica
 Veronika
 Veronike
 Veronique
-Vi
 Vicki
 Vickie
 Vicky
@@ -4716,7 +4670,6 @@ Vikkie
 Vikky
 Vilhelmina
 Vilma
-Vin
 Vina
 Vinita
 Vinni
@@ -4736,7 +4689,6 @@ Vita
 Vitia
 Vitoria
 Vittoria
-Viv
 Viva
 Vivi
 Vivia
